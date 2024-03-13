@@ -72,8 +72,8 @@ void etasje_lys(int *floor,int *old_floor){
 
 void etasje_stop(int queue[4][4],int *heis_reting,int floor,time_t *start){ //Sjekker om heisen er ankommet en etasje med markert stop
     int skal_stoppe = 0; 
-    int under = 0;
-    int over = 0;
+    int under, over;
+   
     for(int f = 0;f<N_FLOORS;f++){ //Sjekker alle etasjene
         under = 0;
         over = 0;
@@ -93,39 +93,59 @@ void etasje_stop(int queue[4][4],int *heis_reting,int floor,time_t *start){ //Sj
             if(queue[f][skal_heis]==1 || //Dersom heisen skal stoppe i etasjen 
               ((queue[f][skal_opp]==1 && (*heis_reting==DIRN_UP || (!under || floor == 0)))) || //eller heisen er på vei opp og --> retningen er opp eller det ikke er noen ordre under
               ((queue[f][skal_ned]==1 && (*heis_reting==DIRN_DOWN || (!over || floor == 3))))){ //eller heisen er på vei ned og --> retningen er ned eller det ikke er noen ordre over
-                *heis_reting=DIRN_STOP;
                 elevio_motorDirection(DIRN_STOP);
-                printf("Stopper i etasje %d\n",elevio_floorSensor());
                 for (int j = 0 ; j<4;j++){ //Sletter alle ordre i etasjen den har stoppet i
                     queue[f][j] = 0;
                 }
                 skal_stoppe = 1;
-            }else if(0){
+            }/* else if(0){
                 elevio_motorDirection(DIRN_STOP);
                 *heis_reting=DIRN_STOP;
                 for (int j = 0 ; j<4;j++){
                     queue[f][j] = 0;
                 }
                 skal_stoppe = 1;
-            }
+            } */
         }
         if(skal_stoppe){*start=time(NULL);} //Starter en timer, slik at heisdøren står åpen 3 sekunder etter at heisen har stoppet
     }
 }
 
-void start_ved_bestiling(int queue[4][4], int floor,int *heis_reting){
-    for(int f = 0;f<N_FLOORS;f++){
-        if(queue[f][skal]==1 && floor>=0){
-            if(f<floor){
-                *heis_reting = DIRN_DOWN;
-                elevio_motorDirection(DIRN_DOWN);
-            }else if(f>floor){
-                *heis_reting = DIRN_UP;
-                elevio_motorDirection(DIRN_UP);
-            }else{
-                *heis_reting = DIRN_STOP;
-                elevio_motorDirection(DIRN_STOP);
+
+int start_ved_bestilling(int queue[4][4], int floor,int *heis_reting){
+    if(*heis_reting == DIRN_DOWN){
+        for(int f = 0;f<N_FLOORS;f++){
+            if(queue[f][skal]==1 && floor>=0){
+                if(f<floor){
+                    *heis_reting = DIRN_DOWN;
+                    return DIRN_DOWN;
+                }else if(f>floor){
+                    *heis_reting = DIRN_UP;
+                    return DIRN_UP;
+                }else{
+                    return DIRN_STOP;
+                }
             }
         }
     }
+    
+    else if (*heis_reting == DIRN_UP){
+        for(int f = N_FLOORS-1;f>=0;f--){
+            if(queue[f][skal]==1 && floor>=0){
+                if(f>floor){
+                    *heis_reting = DIRN_UP;
+                    return DIRN_UP;
+                }else if(f<floor){
+                    *heis_reting = DIRN_DOWN;
+                    return DIRN_DOWN;
+                }else{
+                    return DIRN_STOP;
+                }
+                
+            }
+        }
+    }
+    
+    else{return DIRN_STOP;}
 }
+

@@ -1,7 +1,7 @@
 simulator.con
 
 --travelTimeBetweenFloors_ms    2000
---travelTimePassingFloor_ms     500
+--travelTimePassingFloor_ms     2000
 --btnDepressedTime_ms           200
 --stopMotorOnDisconnect         true
 

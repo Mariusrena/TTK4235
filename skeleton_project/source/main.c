@@ -16,14 +16,14 @@ int main(){
     printf("=============================\n");
     
     int queue[4][4];
-    int heis_reting=0;
+    int heis_reting=DIRN_DOWN;
     for (int i = 0 ; i<4;i++){
         for (int j = 0 ; j<4;j++){
         queue[i][j] = 0;
         }
     }
     int floor = 0;
-    int old_floor;
+    int old_floor, kjør_i_retning;
     
     time_t start = time(NULL);
     
@@ -40,13 +40,19 @@ int main(){
         
         lys_control(queue);
         
-        printf("Floor: %d\n",floor);
         etasje_stop(queue,&heis_reting,floor,&start);
 
         if(((time(NULL)-start)) >= 3){
-            start_ved_bestiling(queue,floor,&heis_reting);
+            kjør_i_retning = start_ved_bestilling(queue,floor,&heis_reting);
+            
+            elevio_motorDirection(kjør_i_retning);
+            while(elevio_floorSensor()==-1){
+                elevio_motorDirection(kjør_i_retning);
+            }
+            
+            //prioritert_bestilling(queue,floor,&heis_reting);
             elevio_doorOpenLamp(0);
-        }else{
+        }else{ 
             elevio_doorOpenLamp(1);
         }
         
