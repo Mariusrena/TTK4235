@@ -12,5 +12,5 @@ typedef enum { // hvem som vil at den skal til etajen/hva de vil
 void queue_make(int queue[4][4]);
 void lys_control(int queue[4][4]);
 void etasje_lys(int *floor,int *old_floor);
-void etasje_stop(int queue[4][4],int *heis_reting, int floor, clock_t *start);
+void etasje_stop(int queue[4][4],int *heis_reting, int floor, time_t *start);
 void start_ved_bestiling(int queue[4][4], int floor,int *heis_reting);

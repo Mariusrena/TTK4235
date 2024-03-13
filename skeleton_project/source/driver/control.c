@@ -31,15 +31,13 @@ void queue_make(int queue[4][4]){
             if(btnPressed && b==2){
                 queue[f][skal_heis]=1;
                 queue[f][skal]=1;
-            }else if(btnPressed){
-                if(b==1){
-                    queue[f][skal_ned]=1;
-                    queue[f][skal]=1; 
-                }else if(b==0){
-                    queue[f][skal_opp]=1;
-                    queue[f][skal]=1;
-                }  
-            }
+            }else if(btnPressed && b==1){
+                queue[f][skal_ned]=1;
+                queue[f][skal]=1;
+            }else if(btnPressed && b==0){
+                queue[f][skal_opp]=1;
+                queue[f][skal]=1;
+            }  
         }
     }
 }
@@ -48,14 +46,18 @@ void lys_control(int queue[4][4]){
     for(int f = 0;f<N_FLOORS;f++){
         if(queue[f][skal] == 1){
             if(queue[f][skal_ned]==1){
-            elevio_buttonLamp(f, skal_ned-1, 1);}
+                elevio_buttonLamp(f, skal_ned-1, 1);
+            }
             if(queue[f][skal_opp]==1){
-            elevio_buttonLamp(f, skal_opp-1, 1);}
+                elevio_buttonLamp(f, skal_opp-1, 1);
+            }
             if(queue[f][skal_heis]==1){
-            elevio_buttonLamp(f, skal_heis-1, 1);}    
+                elevio_buttonLamp(f, skal_heis-1, 1);
+            }    
         }
     }
 }
+
 void etasje_lys(int *floor,int *old_floor){
     
     *floor = elevio_floorSensor();
@@ -65,11 +67,10 @@ void etasje_lys(int *floor,int *old_floor){
             elevio_floorIndicator(*floor);
             *old_floor=*floor;
     }
-    
 }
 
 
-void etasje_stop(int queue[4][4],int *heis_reting,int floor, clock_t *start ){
+void etasje_stop(int queue[4][4],int *heis_reting,int floor, time_t *start){
     int skal_stoppe=0;
     int under = 0;
     int over = 0;
@@ -78,19 +79,19 @@ void etasje_stop(int queue[4][4],int *heis_reting,int floor, clock_t *start ){
         over = 0;
         for(int f2 = f+1;f2<N_FLOORS;f2++){
             if(queue[f2][skal] == 1){
-            over = 1;
-            break;
+                over = 1;
+                break;
             }
         }
         for(int f2 = f-1;f2>=0;f2--){
             if(queue[f2][skal] == 1){
-            under = 1;
-            break; 
+                under = 1;
+                break; 
             }
         }
         if(queue[f][skal] == 1 && f==floor){
             if(queue[f][skal_heis]==1 || 
-              ((queue[f][skal_opp]==1 && (*heis_reting==DIRN_UP || (!under || floor == 0) ))) || 
+              ((queue[f][skal_opp]==1 && (*heis_reting==DIRN_UP || (!under || floor == 0)))) || 
               ((queue[f][skal_ned]==1 && (*heis_reting==DIRN_DOWN || (!over || floor == 3))))){
                 *heis_reting=DIRN_STOP;
                 elevio_motorDirection(DIRN_STOP);
@@ -107,7 +108,7 @@ void etasje_stop(int queue[4][4],int *heis_reting,int floor, clock_t *start ){
                 skal_stoppe = 1;
             }
         }
-        if(skal_stoppe){*start=clock();}
+        if(skal_stoppe){*start=time(NULL);}
     }
 }
 

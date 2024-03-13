@@ -1,9 +1,9 @@
 
 EXECUTABLE  = elevator
 
-COMPILER    = clang
+COMPILER    = gcc
 CFLAGS      = -Wall -g -std=gnu11 -fsanitize=address
-LDFLAGS     = -fsanitize=address
+LDFLAGS     = -fsanitize=address -no-pie
 EXCLUDE     = '*test*'
 
 
