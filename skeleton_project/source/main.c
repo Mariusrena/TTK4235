@@ -40,6 +40,9 @@ int main(){
         
         lys_control(queue);
         
+        printf("Floor: %d\n",floor);
+        etasje_stop(queue,&heis_reting,floor,&start);
+
         if(((time(NULL)-start)) >= 3){
             start_ved_bestiling(queue,floor,&heis_reting);
             elevio_doorOpenLamp(0);
@@ -47,7 +50,6 @@ int main(){
             elevio_doorOpenLamp(1);
         }
         
-        etasje_stop(queue,&heis_reting,floor,&start);
 
         if(elevio_obstruction()){
             elevio_stopLamp(1);
@@ -72,8 +74,8 @@ int main(){
         //nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     }
 
-    for (int i = 0 ; i<4;i++){
+    /* for (int i = 0 ; i<4;i++){
         for (int j = 0 ; j<4;j++){
-            printf("Floor:%d Button:%d -- %d\n",i, j, queue[i][j]);}}
+            printf("Floor:%d Button:%d -- %d\n",i, j, queue[i][j]);}} */
     return 0;
 }

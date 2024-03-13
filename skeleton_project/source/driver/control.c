@@ -70,32 +70,33 @@ void etasje_lys(int *floor,int *old_floor){
 }
 
 
-void etasje_stop(int queue[4][4],int *heis_reting,int floor, time_t *start){
-    int skal_stoppe=0;
+void etasje_stop(int queue[4][4],int *heis_reting,int floor,time_t *start){ //Sjekker om heisen er ankommet en etasje med markert stop
+    int skal_stoppe = 0; 
     int under = 0;
     int over = 0;
-    for(int f = 0;f<N_FLOORS;f++){
+    for(int f = 0;f<N_FLOORS;f++){ //Sjekker alle etasjene
         under = 0;
         over = 0;
-        for(int f2 = f+1;f2<N_FLOORS;f2++){
+        for(int f2 = f+1;f2<N_FLOORS;f2++){ //Sjekker om heisen skal stoppe i en etasje over foreløpig etasjer som blir sjekket
             if(queue[f2][skal] == 1){
                 over = 1;
                 break;
             }
         }
-        for(int f2 = f-1;f2>=0;f2--){
+        for(int f2 = f-1;f2>=0;f2--){ //Sjekker om heisen skal stoppe i en etasje under foreløpig etasjer som blir sjekket
             if(queue[f2][skal] == 1){
                 under = 1;
                 break; 
             }
         }
-        if(queue[f][skal] == 1 && f==floor){
-            if(queue[f][skal_heis]==1 || 
-              ((queue[f][skal_opp]==1 && (*heis_reting==DIRN_UP || (!under || floor == 0)))) || 
-              ((queue[f][skal_ned]==1 && (*heis_reting==DIRN_DOWN || (!over || floor == 3))))){
+        if(queue[f][skal] == 1 && f==floor){ //Dersom heisen skal stoppe i nåværende etasje
+            if(queue[f][skal_heis]==1 || //Dersom heisen skal stoppe i etasjen 
+              ((queue[f][skal_opp]==1 && (*heis_reting==DIRN_UP || (!under || floor == 0)))) || //eller heisen er på vei opp og --> retningen er opp eller det ikke er noen ordre under
+              ((queue[f][skal_ned]==1 && (*heis_reting==DIRN_DOWN || (!over || floor == 3))))){ //eller heisen er på vei ned og --> retningen er ned eller det ikke er noen ordre over
                 *heis_reting=DIRN_STOP;
                 elevio_motorDirection(DIRN_STOP);
-                for (int j = 0 ; j<4;j++){
+                printf("Stopper i etasje %d\n",elevio_floorSensor());
+                for (int j = 0 ; j<4;j++){ //Sletter alle ordre i etasjen den har stoppet i
                     queue[f][j] = 0;
                 }
                 skal_stoppe = 1;
@@ -108,7 +109,7 @@ void etasje_stop(int queue[4][4],int *heis_reting,int floor, time_t *start){
                 skal_stoppe = 1;
             }
         }
-        if(skal_stoppe){*start=time(NULL);}
+        if(skal_stoppe){*start=time(NULL);} //Starter en timer, slik at heisdøren står åpen 3 sekunder etter at heisen har stoppet
     }
 }
 
@@ -121,7 +122,9 @@ void start_ved_bestiling(int queue[4][4], int floor,int *heis_reting){
             }else if(f>floor){
                 *heis_reting = DIRN_UP;
                 elevio_motorDirection(DIRN_UP);
-              
+            }else{
+                *heis_reting = DIRN_STOP;
+                elevio_motorDirection(DIRN_STOP);
             }
         }
     }
