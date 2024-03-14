@@ -22,6 +22,17 @@ void oppstart(){
     elevio_motorDirection(DIRN_STOP);
 }
 
+void etter_stopp(int heis_retning){
+    int floor = elevio_floorSensor();
+    elevio_motorDirection(heis_retning);
+   
+    while (floor == -1){ // setter heis til definert tilstand ved oppstart 
+        floor = elevio_floorSensor();
+    }
+
+    elevio_motorDirection(DIRN_STOP);
+}
+
 void queue_make(int queue[4][4]){
     int btnPressed;
     for(int f = 0; f < N_FLOORS; f++){
@@ -98,14 +109,7 @@ void etasje_stop(int queue[4][4],int *heis_reting,int floor,time_t *start){ //Sj
                     queue[f][j] = 0;
                 }
                 skal_stoppe = 1;
-            }/* else if(0){
-                elevio_motorDirection(DIRN_STOP);
-                *heis_reting=DIRN_STOP;
-                for (int j = 0 ; j<4;j++){
-                    queue[f][j] = 0;
-                }
-                skal_stoppe = 1;
-            } */
+            }
         }
         if(skal_stoppe){*start=time(NULL);} //Starter en timer, slik at heisdøren står åpen 3 sekunder etter at heisen har stoppet
     }
@@ -141,11 +145,9 @@ int start_ved_bestilling(int queue[4][4], int floor,int *heis_reting){
                 }else{
                     return DIRN_STOP;
                 }
-                
             }
         }
     }
-    
     else{return DIRN_STOP;}
 }
 

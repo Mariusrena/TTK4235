@@ -22,16 +22,17 @@ int main(){
         queue[i][j] = 0;
         }
     }
+
     int floor = 0;
     int old_floor, kjør_i_retning;
+    int stop_pressed = 0;
     
     time_t start = time(NULL);
-    
+    time_t stopp;
+
     oppstart();
     
     floor = elevio_floorSensor();
-    
-    
     
     while(1){
         etasje_lys(&floor,&old_floor);
@@ -48,9 +49,12 @@ int main(){
             elevio_motorDirection(kjør_i_retning);
             while(elevio_floorSensor()==-1){
                 elevio_motorDirection(kjør_i_retning);
+                if (elevio_stopButton()){
+                    break;
+                }
+                
             }
             
-            //prioritert_bestilling(queue,floor,&heis_reting);
             elevio_doorOpenLamp(0);
         }else{ 
             elevio_doorOpenLamp(1);
@@ -63,20 +67,22 @@ int main(){
             elevio_stopLamp(0);
         }
         
-        while(elevio_stopButton()){
-            elevio_motorDirection(DIRN_STOP);
-            elevio_stopLamp(1);
-            if (floor!=-1){
+        if(elevio_stopButton()){
+            time_t stopp = time(NULL);
+            while(elevio_stopButton() || (time(NULL)-stopp)<3){
+                stop_pressed = 1;
+                elevio_motorDirection(DIRN_STOP);
                 elevio_stopLamp(1);
-                elevio_doorOpenLamp(1);
-            }
-            if(!elevio_stopButton()){
-                elevio_stopLamp(0);
-                sleep(3);
+                if (floor!=-1){
+                    elevio_stopLamp(1);
+                    elevio_doorOpenLamp(1);
+                }
             }
         }
-        
-        
+        if(stop_pressed){
+            stop_pressed=0;
+            etter_stopp(heis_reting);
+        }
         //nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     }
 

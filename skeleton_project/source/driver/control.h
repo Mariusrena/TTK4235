@@ -14,4 +14,4 @@ void lys_control(int queue[4][4]);
 void etasje_lys(int *floor,int *old_floor);
 void etasje_stop(int queue[4][4],int *heis_reting, int floor, time_t *start);
 int start_ved_bestilling(int queue[4][4], int floor,int *heis_reting);
-
+void etter_stopp(int heis_retning);
