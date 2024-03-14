@@ -22,17 +22,6 @@ void oppstart(){
     elevio_motorDirection(DIRN_STOP);
 }
 
-void etter_stopp(int heis_retning){
-    int floor = elevio_floorSensor();
-    elevio_motorDirection(heis_retning);
-   
-    while (floor == -1){ // setter heis til definert tilstand ved oppstart 
-        floor = elevio_floorSensor();
-    }
-
-    elevio_motorDirection(DIRN_STOP);
-}
-
 void queue_make(int queue[4][4]){
     int btnPressed;
     for(int f = 0; f < N_FLOORS; f++){
@@ -64,8 +53,16 @@ void lys_control(int queue[4][4]){
             }
             if(queue[f][skal_heis]==1){
                 elevio_buttonLamp(f, skal_heis-1, 1);
-            }    
+            }  
         }
+    }
+}
+
+void lys_av(int queue[4][4]){
+    for(int f = 0;f<N_FLOORS;f++){
+        elevio_buttonLamp(f, skal_ned-1, 0);
+        elevio_buttonLamp(f, skal_opp-1, 0);
+        elevio_buttonLamp(f, skal_heis-1, 0);
     }
 }
 
@@ -115,19 +112,29 @@ void etasje_stop(int queue[4][4],int *heis_reting,int floor,time_t *start){ //Sj
     }
 }
 
+void slett_bestillinger(int queue[4][4]){
+    for(int f = 0;f<N_FLOORS;f++){    
+        for (int j = 0 ; j<4;j++){ //Sletter alle ordre i etasjen den har stoppet i
+            queue[f][j] = 0;
+        }
+    }
+}
 
-int start_ved_bestilling(int queue[4][4], int floor,int *heis_reting){
+void start_ved_bestilling(int queue[4][4], double floor,int *heis_reting){
     if(*heis_reting == DIRN_DOWN){
         for(int f = 0;f<N_FLOORS;f++){
             if(queue[f][skal]==1 && floor>=0){
                 if(f<floor){
                     *heis_reting = DIRN_DOWN;
-                    return DIRN_DOWN;
+                    elevio_motorDirection(DIRN_DOWN);
+                    break;
                 }else if(f>floor){
                     *heis_reting = DIRN_UP;
-                    return DIRN_UP;
+                    elevio_motorDirection(DIRN_UP);
+                    break;
                 }else{
-                    return DIRN_STOP;
+                    elevio_motorDirection(DIRN_STOP);
+                    break;
                 }
             }
         }
@@ -138,16 +145,72 @@ int start_ved_bestilling(int queue[4][4], int floor,int *heis_reting){
             if(queue[f][skal]==1 && floor>=0){
                 if(f>floor){
                     *heis_reting = DIRN_UP;
-                    return DIRN_UP;
+                    elevio_motorDirection(DIRN_UP);
+                    break;
                 }else if(f<floor){
                     *heis_reting = DIRN_DOWN;
-                    return DIRN_DOWN;
+                    elevio_motorDirection(DIRN_DOWN);
+                    break;
                 }else{
-                    return DIRN_STOP;
+                    elevio_motorDirection(DIRN_STOP);
+                    break;
                 }
             }
         }
-    }
-    else{return DIRN_STOP;}
+    }else{elevio_motorDirection(DIRN_STOP);}
 }
 
+void door_open(int open){
+    int was_obstructed = 0;
+    elevio_doorOpenLamp(open);
+    int floor = elevio_floorSensor();
+    while(elevio_obstruction() && open){
+        elevio_buttonLamp(floor, skal_ned-1, 0);
+        elevio_buttonLamp(floor, skal_opp-1, 0);
+        elevio_buttonLamp(floor, skal_heis-1, 0);
+        was_obstructed = 1;    
+    }
+    if(was_obstructed){
+        time_t door_time = time(NULL);
+        elevio_doorOpenLamp(open);
+        while(time(NULL)-door_time <= 3){
+            ;
+        }
+    }
+    elevio_doorOpenLamp(0);    
+}
+
+void stop_button_pressed(int queue[4][4], int old_floor, int *heis_retning){
+    time_t stopp;
+    int stop_pressed = 0;
+    if(elevio_stopButton()){
+        stopp = time(NULL);
+        slett_bestillinger(queue);
+        lys_av(queue);
+        while(elevio_stopButton() || (time(NULL)-stopp) >= 3){
+            stop_pressed = 1;
+            elevio_motorDirection(DIRN_STOP);
+            elevio_stopLamp(1);
+            if (elevio_floorSensor()!=-1){
+                elevio_stopLamp(1);
+               door_open(1);
+            }else{
+                door_open(0);
+            }
+            if (!elevio_stopButton()){
+                stopp = time(NULL);
+                elevio_stopLamp(0);
+            }
+        }
+        door_open(0);
+    }
+    /* if(stop_pressed){
+        stop_pressed=0;
+        while (elevio_floorSensor()==-1){
+            double between_floors = (double)old_floor;
+            heis_retning == DIRN_UP ? between_floors+0.5 : between_floors-0.5;
+            start_ved_bestilling(queue,between_floors,heis_retning);
+        }
+        
+    } */
+}

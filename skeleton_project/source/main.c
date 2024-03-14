@@ -16,7 +16,7 @@ int main(){
     printf("=============================\n");
     
     int queue[4][4];
-    int heis_reting=DIRN_DOWN;
+    int heis_retning=DIRN_DOWN;
     for (int i = 0 ; i<4;i++){
         for (int j = 0 ; j<4;j++){
         queue[i][j] = 0;
@@ -24,11 +24,9 @@ int main(){
     }
 
     int floor = 0;
-    int old_floor, kjør_i_retning;
-    int stop_pressed = 0;
+    int old_floor, kjor_i_retning;
     
     time_t start = time(NULL);
-    time_t stopp;
 
     oppstart();
     
@@ -41,53 +39,23 @@ int main(){
         
         lys_control(queue);
         
-        etasje_stop(queue,&heis_reting,floor,&start);
+        etasje_stop(queue,&heis_retning,floor,&start);
 
+        double between_floors = (double)old_floor;
         if(((time(NULL)-start)) >= 3){
-            kjør_i_retning = start_ved_bestilling(queue,floor,&heis_reting);
-            
-            elevio_motorDirection(kjør_i_retning);
-            while(elevio_floorSensor()==-1){
-                elevio_motorDirection(kjør_i_retning);
-                if (elevio_stopButton()){
-                    break;
-                }
-                
+            if(elevio_floorSensor()==-1){
+                heis_retning == DIRN_UP ? between_floors+0.5 : between_floors-0.5;
             }
-            
-            elevio_doorOpenLamp(0);
-        }else{ 
-            elevio_doorOpenLamp(1);
+            start_ved_bestilling(queue, between_floors,&heis_retning);
+            lys_control(queue);
+            door_open(0);
+        }else if (elevio_floorSensor()!=-1){ 
+            lys_control(queue);
+            door_open(1);
         }
         
-
-        if(elevio_obstruction()){
-            elevio_stopLamp(1);
-        }else{
-            elevio_stopLamp(0);
-        }
+        stop_button_pressed(&queue, old_floor, &heis_retning);
         
-        if(elevio_stopButton()){
-            time_t stopp = time(NULL);
-            while(elevio_stopButton() || (time(NULL)-stopp)<3){
-                stop_pressed = 1;
-                elevio_motorDirection(DIRN_STOP);
-                elevio_stopLamp(1);
-                if (floor!=-1){
-                    elevio_stopLamp(1);
-                    elevio_doorOpenLamp(1);
-                }
-            }
-        }
-        if(stop_pressed){
-            stop_pressed=0;
-            etter_stopp(heis_reting);
-        }
-        //nanosleep(&(struct timespec){0, 20*1000*1000}, NULL);
     }
-
-    /* for (int i = 0 ; i<4;i++){
-        for (int j = 0 ; j<4;j++){
-            printf("Floor:%d Button:%d -- %d\n",i, j, queue[i][j]);}} */
     return 0;
 }
