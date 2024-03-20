@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
-#include <unistd.h>
 
 #include "driver/elevio.h"
 #include "driver/control.h"
@@ -27,19 +26,12 @@ int main() {
   
   int old_floor = elevio_floorSensor(); //Sets old floor to the current floor initially
 
-  int id = fork(); //A fork is created in order to keep the lights on without flickering, this however does not seem to fix the problem
-
-  if (id == 0) {
-    while (TRUE) {
-      LightControl(&queue); //Controlls lights other than floor light
-    }
-    
-  }
-
   while(TRUE){
     FloorLight(&old_floor); //Updates light on where the elevator is
        
     QueueUpdate(&queue); //Updates the queue when orders are recieved
+      
+    LightControl(&queue); //Controlls lights other than floor light
       
     StopOnFloor(&queue, &elevator_direction, &start); //Checks to see if the elevator is to stop when on a floor
       
