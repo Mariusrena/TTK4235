@@ -3,7 +3,7 @@ EXECUTABLE  = elevator
 
 COMPILER    = gcc
 CFLAGS      = -Wall -g -std=gnu11 -fsanitize=address
-LDFLAGS     = -fsanitize=address -no-pie
+LDFLAGS     = -fsanitize=address -no-pie -pg
 EXCLUDE     = '*test*'
 
 

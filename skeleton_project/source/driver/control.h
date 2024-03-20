@@ -1,20 +1,32 @@
 #pragma once
 
-void oppstart();
+typedef enum { 
+  kGoingHere      = 0, //The elevator has recieved an order on this floor
+  kGoingUp        = 1, //The elevator has recieved an order for going up
+  kGoingDown      = 2, //The elevator has recieved an order for going down
+  kInsideElevator  = 3  //The elevator has recieved an order from inside the elevator
+} StopType;
 
-typedef enum { // hvem som vil at den skal til etajen/hva de vil  
-    skal        = 0,
-    skal_opp    = 1,
-    skal_ned    = 2,
-    skal_heis   = 3
-} stop_type;
+typedef enum { 
+  TRUE  = 1,
+  FALSE = 0,
+} Booleans;
 
-void queue_make(int queue[4][4]);
-void lys_control(int queue[4][4]);
-void etasje_lys(int *floor,int *old_floor);
-void etasje_stop(int queue[4][4],int *heis_reting, int floor, time_t *start);
-void start_ved_bestilling(int queue[4][4], double floor,int *heis_reting);
-void etter_stopp(int heis_retning);
-void slett_bestillinger(int queue[4][4]);
-void door_open(int open);
-void stop_button_pressed(int queue[4][4], int old_floor, int *heis_retning);
+typedef enum { 
+  ON  = 1,
+  OFF = 0,
+} StateOf;
+
+void ElevatorInit();
+
+void QueueUpdate(int (*queue)[4][4]);
+void StartOnOrder(int (*queue)[4][4], double current_floor, int *elevator_direction);
+void StopOnFloor(int (*queue)[4][4], int *elevator_direction, time_t *start);
+void CancelAllOrders(int (*queue)[4][4]);
+
+void FloorLight(int *old_floor);
+void LightControl(int (*queue)[4][4]);
+void LightsOff(int (*queue)[4][4]);
+void DoorOpen(int open);
+void StopButtonPressed(int (*queue)[4][4], int old_floor);
+void DriveHandler(int (*queue)[4][4], int old_floor, time_t *start, int *elevator_direction);

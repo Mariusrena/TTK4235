@@ -2,60 +2,50 @@
 #include <stdlib.h>
 #include <signal.h>
 #include <time.h>
+#include <unistd.h>
+
 #include "driver/elevio.h"
 #include "driver/control.h"
 
+int main() {
 
+  elevio_init(); 
+  
+  printf("=============================\n");
+  printf("===   Program Starting    ===\n");
+  printf("=== Initializing Elevator ===\n");
+  printf("=============================\n");
+   
+  int queue[4][4]; //The floor/button pair array
+  int elevator_direction = DIRN_DOWN;
+  
+  CancelAllOrders(&queue); //Initializes the queue to all zeros
+  
+  time_t start = time(NULL);
+  
+  ElevatorInit(); //Drives the elevator to a defined state (Any legal floor)
+  
+  int old_floor = elevio_floorSensor(); //Sets old floor to the current floor initially
 
-int main(){
-    elevio_init();
+  int id = fork(); //A fork is created in order to keep the lights on without flickering, this however does not seem to fix the problem
 
-    printf("=============================\n");
-    printf("===   Program Starting    ===\n");
-    printf("=== Initializing Elevator ===\n");
-    printf("=============================\n");
-    
-    int queue[4][4];
-    int heis_retning=DIRN_DOWN;
-    for (int i = 0 ; i<4;i++){
-        for (int j = 0 ; j<4;j++){
-        queue[i][j] = 0;
-        }
+  if (id == 0) {
+    while (TRUE) {
+      LightControl(&queue); //Controlls lights other than floor light
     }
-
-    int floor = 0;
-    int old_floor, kjor_i_retning;
     
-    time_t start = time(NULL);
+  }
 
-    oppstart();
-    
-    floor = elevio_floorSensor();
-    
-    while(1){
-        etasje_lys(&floor,&old_floor);
-        
-        queue_make(&queue);
-        
-        lys_control(queue);
-        
-        etasje_stop(queue,&heis_retning,floor,&start);
-
-        double between_floors = (double)old_floor;
-        if(((time(NULL)-start)) >= 3){
-            if(elevio_floorSensor()==-1){
-                heis_retning == DIRN_UP ? between_floors+0.5 : between_floors-0.5;
-            }
-            start_ved_bestilling(queue, between_floors,&heis_retning);
-            lys_control(queue);
-            door_open(0);
-        }else if (elevio_floorSensor()!=-1){ 
-            lys_control(queue);
-            door_open(1);
-        }
-        
-        stop_button_pressed(&queue, old_floor, &heis_retning);
-        
-    }
-    return 0;
+  while(TRUE){
+    FloorLight(&old_floor); //Updates light on where the elevator is
+       
+    QueueUpdate(&queue); //Updates the queue when orders are recieved
+      
+    StopOnFloor(&queue, &elevator_direction, &start); //Checks to see if the elevator is to stop when on a floor
+      
+    DriveHandler(&queue, old_floor, &start, &elevator_direction); //Drives the elevator in the direction of most prioritized order
+  
+    StopButtonPressed(&queue, old_floor); //Checks id the stop button is pressed
+  }
+  return 0;
 }
