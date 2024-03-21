@@ -69,7 +69,7 @@ void StartOnOrder (int (*queue)[4][4], double current_floor, int *elevator_direc
           elevio_motorDirection(DIRN_UP);
           break;
         } else {
-          elevio_motorDirection(DIRN_STOP);
+          elevio_motorDirection(DIRN_UP);
           break;
         }
       }
@@ -88,7 +88,7 @@ void StartOnOrder (int (*queue)[4][4], double current_floor, int *elevator_direc
           elevio_motorDirection(DIRN_DOWN);
           break;
         } else {
-          elevio_motorDirection(DIRN_STOP);
+          elevio_motorDirection(DIRN_DOWN);
           break;
         }
       }
