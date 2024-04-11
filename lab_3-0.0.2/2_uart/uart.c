@@ -8,7 +8,9 @@ typedef struct {
     volatile uint32_t TASKS_STOPRX;
     volatile uint32_t TASKS_STARTTX;
     volatile uint32_t TASKS_STOPTX;
-    volatile uint32_t RESERVED0[62];
+    volatile uint32_t RESERVED0[60];
+    volatile uint32_t EVENTS_CTS;
+    volatile uint32_t EVENTS_NCTS;
     volatile uint32_t EVENTS_RXDRDY;
     volatile uint32_t RESERVED1[4];
     volatile uint32_t EVENTS_TXDRDY;
@@ -25,14 +27,51 @@ typedef struct {
     volatile uint32_t BAUDRATE;
 } NTF_UART_REG ;
 
-void uart_init() {
+void uart_init () {
     GPIO->PIN_CNF[6] = 1; //Transmit TXD
     GPIO->PIN_CNF[8] = 0; //Reciecve RXD
-    UART->PSELTXD = (1 << 6); //0x06
-    UART->PSELRXD = (1 << 8); //0x28
+    UART->PSELTXD = 6; //0x06 
+    UART->PSELRXD = 8; //0x28 
     UART->PSELRTS = 0xFFFFFFFF;
     UART->PSELCTS = 0xFFFFFFFF;
     UART->BAUDRATE = 0x00275000;
     UART->ENABLE = 4;
     UART->TASKS_STARTRX = 1;
 }
+
+void uart_send (char letter) {
+    
+    UART->TASKS_STARTTX = 1;
+    UART->TXD = letter;
+    
+    UART->EVENTS_CTS = 0;
+    
+    while (!UART->EVENTS_TXDRDY);
+    
+    UART->EVENTS_TXDRDY = 0;
+    UART->TASKS_STOPTX = 1;
+}
+
+char uart_read () {
+    char letter; 
+    if (UART->EVENTS_RXDRDY) {
+        UART->TASKS_STARTRX = 1;
+        UART->EVENTS_RXDRDY = 0;
+        
+        letter = UART->RXD;
+        
+        UART->TASKS_STARTRX = 0;
+        return letter;
+    } else {return '\0';}
+}
+
+/* void uart_send_str(char ** str){
+    UART->TASKS_STARTTX = 1;
+    char * letter_ptr = *str;
+    while(*letter_ptr != '\0'){
+        UART->TXD = *letter_ptr;
+        while(!UART->EVENTS_TXDRDY);
+        UART->EVENTS_TXDRDY = 0;
+        letter_ptr++;
+    }
+} */
